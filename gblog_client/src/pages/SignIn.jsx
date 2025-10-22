@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Link } from "react-router"; // ✅ fixed import
-import { AuthIndex, RouteIndex, RouteSignUp } from "@/helper/RoutesName";
+import { Link, useNavigate } from "react-router"; // ✅ fixed import
+import { RouteIndex, RouteSignUp } from "@/helper/RoutesName";
+import { getEnv } from "@/helper/getEnv";
 
 // ✅ Improved schema with empty-field messages
 const formSchema = z.object({
@@ -30,6 +31,7 @@ const formSchema = z.object({
 });
 
 const SignIn = () => {
+  const navigate = useNavigate();
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -38,9 +40,7 @@ const SignIn = () => {
     },
   });
 
-  const onSubmit = (values) => {
-    console.log(values);
-  };
+  const onSubmit = async (values) => {};
 
   return (
     <div className="flex justify-center items-center h-screen w-screen">
@@ -102,10 +102,7 @@ const SignIn = () => {
 
               <div className="text-xs flex justify-center items-center py-3">
                 <p>Don&apos;t have an account?</p>
-                <Link
-                  className="ml-2 underline text-blue-500"
-                  to={`/${AuthIndex}/${RouteSignUp}`}
-                >
+                <Link className="ml-2 underline text-blue-500" to={RouteSignUp}>
                   Sign Up
                 </Link>
               </div>

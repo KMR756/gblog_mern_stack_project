@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { Link } from "react-router";
 import { FaSignInAlt } from "react-icons/fa";
 import SearchBox from "./SearchBox";
-import { AuthIndex, RouteIndex, RouteSignIn } from "@/helper/RoutesName";
+import { RouteIndex, RouteSignIn } from "@/helper/RoutesName";
 
 const Navbar = () => {
   return (
@@ -19,7 +19,7 @@ const Navbar = () => {
       </div>
       <div>
         <Button className="rounded-full font-bold" asChild>
-          <Link to={`${AuthIndex}/${RouteSignIn}`}>
+          <Link to={RouteSignIn}>
             <FaSignInAlt />
             Sign In
           </Link>

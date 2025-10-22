@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { AuthIndex, RouteIndex, RouteSignIn } from "@/helper/RoutesName";
-import { Link } from "react-router"; // ✅ fixed import
+import { RouteIndex, RouteSignIn } from "@/helper/RoutesName";
+import { Link, useNavigate } from "react-router"; // ✅ fixed import
+import { getEnv } from "@/helper/getEnv";
 
 const formSchema = z
   .object({
@@ -45,6 +46,7 @@ const formSchema = z
   });
 
 const Signup = () => {
+  const navigate = useNavigate();
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -55,8 +57,27 @@ const Signup = () => {
     },
   });
 
-  const onSubmit = (values) => {
+  const onSubmit = async (values) => {
     console.log(values);
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/auth/register`, {
+        method: "post",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify(values),
+        credentials: "include",
+      });
+      console.log(response);
+
+      if (!response.ok) {
+        alert("registration faild..");
+      }
+      navigate(RouteSignIn);
+    } catch (error) {
+      console.log(error.massage);
+    }
   };
 
   return (
@@ -142,10 +163,7 @@ const Signup = () => {
               </Button>
               <div className="text-xs flex justify-center items-center py-3">
                 <p>Already have an account?</p>
-                <Link
-                  className="ml-2 underline text-blue-500"
-                  to={`/${AuthIndex}/${RouteSignIn}`}
-                >
+                <Link className="ml-2 underline text-blue-500" to={RouteSignIn}>
                   Sign In
                 </Link>
               </div>
