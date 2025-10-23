@@ -15,8 +15,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router"; // ✅ fixed import
-import { RouteIndex, RouteSignUp } from "@/helper/RoutesName";
+import { RouteIndex, RouteSignIn, RouteSignUp } from "@/helper/RoutesName";
 import { getEnv } from "@/helper/getEnv";
+import { ShowToast } from "@/helper/ShowToast";
 
 // ✅ Improved schema with empty-field messages
 const formSchema = z.object({
@@ -40,7 +41,33 @@ const SignIn = () => {
     },
   });
 
-  const onSubmit = async (values) => {};
+  const onSubmit = async (values) => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify(values),
+        credentials: "include",
+      });
+      // const data = await response.json();
+      // console.log(response.data);
+      const data = await response.json();
+
+      console.log("Full response:", response);
+      console.log("Parsed data:", data);
+      if (!response.ok) {
+        // console.log(data.message);
+        ShowToast("error", data.message || "Registration failed");
+        return;
+      }
+      ShowToast("success", data.message || "Registered successfully");
+      navigate(RouteIndex);
+    } catch (error) {
+      ShowToast("error", "Something went wrong");
+    }
+  };
 
   return (
     <div className="flex justify-center items-center h-screen w-screen">
