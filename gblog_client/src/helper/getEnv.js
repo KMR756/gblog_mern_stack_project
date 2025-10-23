@@ -1,3 +1,4 @@
 export const getEnv = (envname) => {
-  return import.meta.env.envname;
+  const env = import.meta.env.envname;
+  return env[envname];
 };

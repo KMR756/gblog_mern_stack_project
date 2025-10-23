@@ -13,6 +13,10 @@ app.use(
     credentials: true,
   })
 );
+
+// routers
+app.use("/api/auth", AuthRoute);
+
 app.use((err, req, res, next) => {
   console.error(`[ERROR] ${err.statusCode || 500} - ${err.message}`);
 
@@ -22,8 +26,5 @@ app.use((err, req, res, next) => {
     message: err.message || "internal server error.",
   });
 });
-
-// routers
-app.use("/api/auth", AuthRoute);
 
 export { app };

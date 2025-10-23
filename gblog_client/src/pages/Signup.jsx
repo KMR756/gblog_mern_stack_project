@@ -16,7 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { RouteIndex, RouteSignIn } from "@/helper/RoutesName";
 import { Link, useNavigate } from "react-router"; // ✅ fixed import
-import { getEnv } from "@/helper/getEnv";
+
+import { ShowToast } from "@/helper/ShowToast";
 
 const formSchema = z
   .object({
@@ -58,25 +59,32 @@ const Signup = () => {
   });
 
   const onSubmit = async (values) => {
-    console.log(values);
+    // console.log(values);
 
     try {
       const response = await fetch(`http://localhost:8000/api/auth/register`, {
-        method: "post",
+        method: "POST",
         headers: {
           "Content-type": "application/json",
         },
         body: JSON.stringify(values),
         credentials: "include",
       });
-      console.log(response);
+      // const data = await response.json();
+      // console.log(response.data);
+      const data = await response.json();
 
+      console.log("Full response:", response);
+      console.log("Parsed data:", data);
       if (!response.ok) {
-        alert("registration faild..");
+        // console.log(data.message);
+        ShowToast("error", data.message || "Registration failed");
+        return;
       }
+      ShowToast("success", data.message || "Registered successfully");
       navigate(RouteSignIn);
     } catch (error) {
-      console.log(error.massage);
+      ShowToast("error", "Something went wrong");
     }
   };
 
