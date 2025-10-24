@@ -74,6 +74,9 @@ export const Login = async (req, res, next) => {
     });
     res.status(200).json(
       handleSucces(200, "login succesfully.", {
+        _id: user._id,
+        role: user.role,
+
         name: user.name,
         email: user.email,
         createdAt: user.createdAt,
@@ -83,9 +86,54 @@ export const Login = async (req, res, next) => {
     next(handleError(500, error.message));
   }
 };
-
 // goolge login controller
-export const GoolgeLogin = async (req, res) => {};
+export const GoogleLogin = async (req, res, next) => {
+  try {
+    const { name, email, avater } = req.body;
+    let user;
+    user = await User.findOne({ email });
+    if (!user) {
+      const password = Math.random().toString(36).slice(-8);
+      console.log(password);
+
+      const hashedPassword = await bcryptjs.hash(password, 12);
+      const newUser = new User({
+        name,
+        email,
+        password: hashedPassword,
+        avater: avater || "",
+      });
+      user = await newUser.save();
+    }
+
+    const payload = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      avater: user.avater,
+      role: user.role,
+    };
+    const token = await jwt.sign(payload, process.env.JWT_SECRET);
+    res.cookie("access_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      path: "/",
+    });
+    res.status(200).json(
+      handleSucces(200, "login succesfully.", {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avater: user.avater,
+        createdAt: user.createdAt,
+      })
+    );
+  } catch (error) {
+    next(handleError(500, error.message));
+  }
+};
 
 // logout controller
 export const Logout = async (req, res, next) => {};

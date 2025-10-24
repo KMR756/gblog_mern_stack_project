@@ -18,6 +18,7 @@ import { RouteIndex, RouteSignIn } from "@/helper/RoutesName";
 import { Link, useNavigate } from "react-router"; // ✅ fixed import
 
 import { ShowToast } from "@/helper/ShowToast";
+import GoogleLogin from "@/components/GoogleLogin";
 
 const formSchema = z
   .object({
@@ -90,15 +91,19 @@ const Signup = () => {
 
   return (
     <div className="flex justify-center items-center w-screen h-screen">
-      <Card className="md:w-2/3 xl:w-1/2 px-10 py-5">
+      <Card className=" px-10 py-5">
         <Link to={RouteIndex}>
           <div className="flex justify-center items-center">
             <img className="w-35" src={logo} alt="" />
           </div>
         </Link>
-        <h1 className="text-center font-bold text-xl md:text-4xl text-primary">
+        <h1 className="text-center font-bold text-3xl md:text-6xl text-primary">
           REGISTRATION NOW
         </h1>
+        <GoogleLogin />
+        <div className="border-1 my-5 flex justify-center items-center w-1/2 mx-auto">
+          <span className="absolute font-bold bg-white">OR</span>
+        </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField

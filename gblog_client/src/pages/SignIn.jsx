@@ -18,6 +18,9 @@ import { Link, useNavigate } from "react-router"; // ✅ fixed import
 import { RouteIndex, RouteSignIn, RouteSignUp } from "@/helper/RoutesName";
 import { getEnv } from "@/helper/getEnv";
 import { ShowToast } from "@/helper/ShowToast";
+import GoogleLogin from "@/components/GoogleLogin";
+import { useDispatch } from "react-redux";
+import { setUser } from "@/redux/user/user.slice";
 
 // ✅ Improved schema with empty-field messages
 const formSchema = z.object({
@@ -32,6 +35,7 @@ const formSchema = z.object({
 });
 
 const SignIn = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -62,6 +66,7 @@ const SignIn = () => {
         ShowToast("error", data.message || "Registration failed");
         return;
       }
+      dispatch(setUser(data));
       ShowToast("success", data.message || "Registered successfully");
       navigate(RouteIndex);
     } catch (error) {
@@ -71,7 +76,7 @@ const SignIn = () => {
 
   return (
     <div className="flex justify-center items-center h-screen w-screen">
-      <Card className="md:w-2/3 xl:w-1/2 px-10 py-5">
+      <Card className=" px-10 py-5">
         <Link to={RouteIndex}>
           <div className="flex justify-center items-center">
             <img className="w-35" src={logo} alt="" />
@@ -80,7 +85,10 @@ const SignIn = () => {
         <h1 className="text-center font-bold text-3xl md:text-6xl text-primary">
           LOG IN NOW
         </h1>
-
+        <GoogleLogin />
+        <div className="border-1 my-5 flex justify-center items-center w-1/2 mx-auto">
+          <span className="absolute font-bold bg-white">OR</span>
+        </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             {/* Email Field */}
