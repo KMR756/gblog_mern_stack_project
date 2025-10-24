@@ -21,6 +21,7 @@ import { json, success } from "zod";
 import { ShowToast } from "@/helper/ShowToast";
 import { removeUser } from "@/redux/user/user.slice";
 import { RouteIndex } from "@/helper/RoutesName";
+import Swal from "sweetalert2";
 
 const Dropdown_navbar = () => {
   const dispatch = useDispatch();
@@ -28,6 +29,16 @@ const Dropdown_navbar = () => {
   const user = useSelector((state) => state.user.user.data);
   console.log(user);
   const handleLogout = async () => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You will be logged out of your account.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, log out!",
+    });
+    if (!result.isConfirmed) return;
     try {
       const response = await fetch(`http://localhost:8000/api/auth/logout`, {
         method: "POST",
@@ -40,7 +51,13 @@ const Dropdown_navbar = () => {
       }
       dispatch(removeUser());
       navigate(RouteIndex);
-      ShowToast("success", data.message);
+      Swal.fire({
+        title: "Logged Out!",
+        text: "You have been logged out successfully.",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
     } catch (error) {
       ShowToast("error", error.message);
     }
