@@ -20,53 +20,71 @@ import { GoDotFill } from "react-icons/go";
 
 const AppSideBar = () => {
   return (
-    <Sidebar>
+    <Sidebar className="mt-25">
       <SidebarHeader className="bg-white ">
-        <img src={logo} alt="logo" width={120} />
+        {/* <img src={logo} className="h-15" alt="logo" width={120} /> */}
       </SidebarHeader>
       <SidebarContent className="bg-white">
         <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton>
-                <FaHome className="text-primary" />
+              <SidebarMenuButton className="text-xl py-2 font-semibold">
+                <FaHome
+                  style={{ width: 22, height: 22 }}
+                  className="text-primary"
+                />
                 <Link to={"#"}>Home</Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton>
-                <BiSolidCategory className="text-primary" />
+              <SidebarMenuButton className="text-xl py-2 font-semibold">
+                <BiSolidCategory
+                  style={{ width: 22, height: 22 }}
+                  className="text-primary"
+                />
                 <Link to={"#"}>Categories</Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton>
-                <FaBlog className="text-primary" />
+              <SidebarMenuButton className="text-xl py-2 font-semibold">
+                <FaBlog
+                  style={{ width: 22, height: 22 }}
+                  className="text-primary"
+                />
                 <Link to={"#"}>Blogs</Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton>
-                <FaComments className="text-primary" />
+              <SidebarMenuButton className="text-xl py-2 font-semibold">
+                <FaComments
+                  style={{ width: 22, height: 22 }}
+                  className="text-primary"
+                />
                 <Link to={"#"}>Comments</Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton>
-                <FaUserFriends className="text-primary" />
+              <SidebarMenuButton className="text-xl py-2 font-semibold">
+                <FaUserFriends
+                  style={{ width: 22, height: 22 }}
+                  className="text-primary"
+                />
                 <Link to={"#"}>Users</Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel className="font-bold">
+          <SidebarGroupLabel className="text-2xl font-bold">
             Categories
           </SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton>
-                <GoDotFill className=" text-primary" />
+              <SidebarMenuButton className="text-xl py-2 font-semibold">
+                <GoDotFill
+                  style={{ width: 22, height: 22 }}
+                  className=" text-primary"
+                />
                 <Link to={"#"}>Cetories Item</Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

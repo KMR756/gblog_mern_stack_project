@@ -136,4 +136,16 @@ export const GoogleLogin = async (req, res, next) => {
 };
 
 // logout controller
-export const Logout = async (req, res, next) => {};
+export const Logout = async (req, res, next) => {
+  try {
+    res.clearCookie("access_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      path: "/",
+    });
+    res.status(200).json(handleSucces(200, "log out Succesfull."));
+  } catch (error) {
+    next(handleError(500, error.message));
+  }
+};
