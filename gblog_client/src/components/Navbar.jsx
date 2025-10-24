@@ -24,9 +24,9 @@ const Navbar = () => {
       </div>
       <div>
         {!user.isLoggedIn ? (
-          <Button className="rounded-full font-bold" asChild>
+          <Button className="rounded-md text-2xl py-7 px-5 font-bold" asChild>
             <Link to={RouteSignIn}>
-              <FaSignInAlt />
+              <FaSignInAlt style={{ width: 30, height: 30 }} />
               Sign In
             </Link>
           </Button>
