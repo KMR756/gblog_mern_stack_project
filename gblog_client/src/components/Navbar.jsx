@@ -10,7 +10,7 @@ import Dropdown_navbar from "./Dropdown_navbar";
 
 const Navbar = () => {
   const user = useSelector((state) => state.user);
-  console.log(user);
+  // console.log(user);
 
   return (
     <div className="flex justify-between items-center fixed top-0 h-25 w-full z-20 bg-white px-5 border-b">

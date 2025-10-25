@@ -15,30 +15,27 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { RouteIndex, RouteSignIn } from "@/helper/RoutesName";
-import { Link, useNavigate } from "react-router"; // ✅ fixed import
-
+import { Link, useNavigate } from "react-router";
 import { ShowToast } from "@/helper/ShowToast";
 import GoogleLogin from "@/components/GoogleLogin";
+import { useDispatch } from "react-redux";
+import { setUser } from "@/redux/user/user.slice";
+import api from "../helper/api"; // ✅ use Axios instance
 
+// Validation schema
 const formSchema = z
   .object({
-    name: z
-      .string()
-      .min(1, "Enter your name.")
-      .min(3, "Name must be at least 3 characters long."),
-    email: z
-      .string()
-      .min(1, "Enter your email address.")
-      .email("Invalid email address."),
+    name: z.string().min(3, "Name must be at least 3 characters long."),
+    email: z.string().email("Invalid email address."),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters long.")
-      .regex(/[A-Z]/, "Password must include at least one uppercase letter.")
-      .regex(/[a-z]/, "Password must include at least one lowercase letter.")
-      .regex(/[0-9]/, "Password must include at least one number.")
+      .regex(/[A-Z]/, "Include at least one uppercase letter.")
+      .regex(/[a-z]/, "Include at least one lowercase letter.")
+      .regex(/[0-9]/, "Include at least one number.")
       .regex(
         /[!@#$%^&*(),.?":{}|<>]/,
-        "Password must include at least one special character."
+        "Include at least one special character."
       ),
     confirmPassword: z.string().min(1, "Please confirm your password."),
   })
@@ -48,62 +45,64 @@ const formSchema = z
   });
 
 const Signup = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-    },
+    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
   });
 
   const onSubmit = async (values) => {
-    // console.log(values);
-
     try {
-      const response = await fetch(`http://localhost:8000/api/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json",
-        },
-        body: JSON.stringify(values),
-        credentials: "include",
-      });
-      // const data = await response.json();
-      // console.log(response.data);
-      const data = await response.json();
+      const { confirmPassword, ...payload } = values; // remove confirmPassword
+      const { data } = await api.post("/auth/register", payload); // ✅ Axios
 
-      console.log("Full response:", response);
-      console.log("Parsed data:", data);
-      if (!response.ok) {
-        // console.log(data.message);
-        ShowToast("error", data.message || "Registration failed");
+      console.log("Response:", data);
+
+      if (!data?.data?.user) {
+        ShowToast("warning", "Registered successfully. Please login manually.");
+        navigate(RouteSignIn);
         return;
       }
-      ShowToast("success", data.message || "Registered successfully");
-      navigate(RouteSignIn);
+
+      // Auto login after registration
+      dispatch(
+        setUser({
+          user: data.data.user,
+          token: data.data.token || null,
+        })
+      );
+      ShowToast("success", "Registration successful!.");
+      form.reset();
+      navigate(RouteIndex);
     } catch (error) {
-      ShowToast("error", "Something went wrong");
+      console.error(error);
+      ShowToast(
+        "error",
+        error.response?.data?.message || "Something went wrong"
+      );
     }
   };
 
   return (
     <div className="flex justify-center items-center w-screen h-screen">
-      <Card className=" px-10 py-5">
+      <Card className="px-10 py-5">
         <Link to={RouteIndex}>
           <div className="flex justify-center items-center">
-            <img className="w-35" src={logo} alt="" />
+            <img className="w-35" src={logo} alt="logo" />
           </div>
         </Link>
+
         <h1 className="text-center font-bold text-3xl md:text-6xl text-primary">
           REGISTRATION NOW
         </h1>
+
         <GoogleLogin />
-        <div className="border-1 my-5 flex justify-center items-center w-1/2 mx-auto">
-          <span className="absolute font-bold bg-white">OR</span>
+
+        <div className="border-1 my-5 flex justify-center items-center w-1/2 mx-auto relative">
+          <span className="absolute font-bold bg-white px-2">OR</span>
         </div>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
@@ -119,7 +118,6 @@ const Signup = () => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="email"
@@ -133,7 +131,6 @@ const Signup = () => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="password"
@@ -151,7 +148,6 @@ const Signup = () => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="confirmPassword"
@@ -169,7 +165,6 @@ const Signup = () => {
                 </FormItem>
               )}
             />
-
             <div className="text-center">
               <Button className="w-1/2" type="submit">
                 Sign Up

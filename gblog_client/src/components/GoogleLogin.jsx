@@ -29,23 +29,31 @@ const GoogleLogin = () => {
         avater: user.photoURL || "",
       };
 
-      // Use environment variable for production
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
-      const response = await fetch(`${API_URL}/auth/google-login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bodyData),
-        credentials: "include", // keep cookies (JWT)
-      });
+      // ✅ Send Google data to backend
+      const response = await fetch(
+        `http://localhost:8000/api/auth/google-login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(bodyData),
+          credentials: "include",
+        }
+      );
 
       const data = await response.json();
-
       if (!response.ok) {
         ShowToast("error", data?.message || "Login failed");
         return;
       }
-      dispatch(setUser(data));
+
+      // ✅ Dispatch user and token to Redux
+      dispatch(
+        setUser({
+          user: data.data.user,
+          token: data.data.token || null,
+        })
+      );
+
       ShowToast("success", data?.message || "Login successful!");
       navigate(RouteIndex);
     } catch (error) {

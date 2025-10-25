@@ -3,6 +3,7 @@ import { handleError } from "../utils/HandleError.js";
 import bcryptjs from "bcryptjs";
 import { handleSucces } from "../utils/HandleSuccess.js";
 import jwt from "jsonwebtoken";
+import { generateTokens } from "../utils/token.js";
 // register controller
 export const Register = async (req, res, next) => {
   try {
@@ -30,16 +31,42 @@ export const Register = async (req, res, next) => {
       password: hashedPassword,
     });
     await user.save();
-    // Hide password in response
-    const userWithOutPassword = {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      createdAt: user.createdAt,
-    };
-    res
-      .status(201)
-      .json(handleSucces(201, "Registraion succesfully.", userWithOutPassword));
+
+    // ✅ Generate tokens immediately
+    const { accessToken, refreshToken } = generateTokens(user);
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    // Set cookies
+    res.cookie("access_token", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      path: "/",
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+
+    res.cookie("refresh_token", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+    // Return user + token
+    res.status(201).json(
+      handleSucces(201, "Registration successful. Logged in automatically.", {
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          avater: user.avater,
+          createdAt: user.createdAt,
+        },
+        token: accessToken,
+      })
+    );
   } catch (error) {
     next(handleError(500, error?.message));
   }
@@ -52,34 +79,41 @@ export const Login = async (req, res, next) => {
     if (!user) {
       return next(handleError(404, "invalid login credentials."));
     }
-    const hashedPassword = user.password;
-    const comparePassword = await bcryptjs.compare(password, hashedPassword);
+
+    const comparePassword = await bcryptjs.compare(password, user.password);
     if (!comparePassword) {
       return next(handleError(404, "invalid login credentials."));
     }
-    const token = await jwt.sign(
-      {
-        _id: user._id,
-        user: user.name,
-        email: user.email,
-        avater: user.avater,
-      },
-      process.env.JWT_SECRET
-    );
-    res.cookie("access_token", token, {
+    const { accessToken, refreshToken } = generateTokens(user);
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.cookie("access_token", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
       path: "/",
+      maxAge: 5 * 60 * 1000,
+    });
+    res.cookie("refresh_token", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
     res.status(200).json(
-      handleSucces(200, "login succesfully.", {
-        _id: user._id,
-        role: user.role,
-
-        name: user.name,
-        email: user.email,
-        createdAt: user.createdAt,
+      handleSucces(200, "Login successful.", {
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          avater: user.avater,
+          createdAt: user.createdAt,
+        },
+        token: accessToken, // optional: store in Redux
       })
     );
   } catch (error) {
@@ -90,45 +124,123 @@ export const Login = async (req, res, next) => {
 export const GoogleLogin = async (req, res, next) => {
   try {
     const { name, email, avater } = req.body;
-    let user;
-    user = await User.findOne({ email });
-    if (!user) {
-      const password = Math.random().toString(36).slice(-8);
-      console.log(password);
+    if (!email || !name) {
+      return next(handleError(400, "Google login data missing."));
+    }
 
-      const hashedPassword = await bcryptjs.hash(password, 12);
-      const newUser = new User({
+    let user = await User.findOne({ email });
+    if (!user) {
+      const randomPassword = Math.random().toString(36).slice(-8);
+      // console.log(password);
+
+      const hashedPassword = await bcryptjs.hash(randomPassword, 12);
+
+      user = new User({
         name,
         email,
         password: hashedPassword,
         avater: avater || "",
       });
-      user = await newUser.save();
+      await user.save();
     }
 
-    const payload = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      avater: user.avater,
-      role: user.role,
-    };
-    const token = await jwt.sign(payload, process.env.JWT_SECRET);
-    res.cookie("access_token", token, {
+    const { accessToken, refreshToken } = generateTokens(user);
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.cookie("access_token", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
       path: "/",
+      maxAge: 5 * 60 * 1000,
+    });
+    res.cookie("refresh_token", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
     res.status(200).json(
-      handleSucces(200, "login succesfully.", {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avater: user.avater,
-        createdAt: user.createdAt,
+      handleSucces(200, "Login successful.", {
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          avater: user.avater,
+          createdAt: user.createdAt,
+        },
+        token: accessToken,
       })
+    );
+  } catch (error) {
+    next(handleError(500, error.message));
+  }
+};
+export const RefreshToken = async (req, res, next) => {
+  try {
+    const refreshToken = req.cookies.refresh_token;
+    if (!refreshToken) {
+      return next(handleError(401, "No refresh token provided"));
+    }
+
+    const user = await User.findOne({ refreshToken });
+    // console.log(user);
+
+    if (!user) {
+      return next(handleError(403, "Invalid refresh token"));
+    }
+
+    jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET,
+      async (err, decoded) => {
+        if (err)
+          return next(handleError(403, "Invalid or expired refresh token"));
+
+        const user = await User.findById(decoded.id);
+        if (!user || user.refreshToken !== refreshToken) {
+          return next(handleError(403, "Invalid refresh token"));
+        }
+
+        const { accessToken, refreshToken: newRefreshToken } =
+          generateTokens(user);
+        user.refreshToken = newRefreshToken;
+        await user.save();
+
+        res.cookie("access_token", accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+          path: "/",
+          maxAge: 15 * 60 * 1000,
+        });
+
+        res.cookie("refresh_token", newRefreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+          path: "/",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
+        res.status(200).json(
+          handleSucces(200, "Token refreshed successfully", {
+            user: {
+              _id: user._id,
+              name: user.name,
+              email: user.email,
+              role: user.role,
+              avater: user.avater,
+              createdAt: user.createdAt,
+            },
+            token: accessToken,
+          })
+        );
+      }
     );
   } catch (error) {
     next(handleError(500, error.message));
@@ -138,13 +250,26 @@ export const GoogleLogin = async (req, res, next) => {
 // logout controller
 export const Logout = async (req, res, next) => {
   try {
+    const refreshToken = req.cookies.refresh_token;
+    if (refreshToken) {
+      await User.updateOne({ refreshToken }, { $unset: { refreshToken: "" } });
+    }
+
     res.clearCookie("access_token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
       path: "/",
     });
-    res.status(200).json(handleSucces(200, "log out Succesfull."));
+
+    res.clearCookie("refresh_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      path: "/",
+    });
+
+    res.status(200).json(handleSucces(200, "Logout successful."));
   } catch (error) {
     next(handleError(500, error.message));
   }

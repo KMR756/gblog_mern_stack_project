@@ -14,15 +14,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Link, useNavigate } from "react-router"; // ✅ fixed import
-import { RouteIndex, RouteSignIn, RouteSignUp } from "@/helper/RoutesName";
-import { getEnv } from "@/helper/getEnv";
+import { Link, useNavigate } from "react-router";
+import { RouteIndex, RouteSignUp } from "@/helper/RoutesName";
 import { ShowToast } from "@/helper/ShowToast";
 import GoogleLogin from "@/components/GoogleLogin";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/redux/user/user.slice";
+import api from "@/helper/api";
 
-// ✅ Improved schema with empty-field messages
+// ✅ Validation Schema
 const formSchema = z.object({
   email: z
     .string()
@@ -37,6 +37,7 @@ const formSchema = z.object({
 const SignIn = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,51 +48,65 @@ const SignIn = () => {
 
   const onSubmit = async (values) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json",
-        },
-        body: JSON.stringify(values),
-        credentials: "include",
+      // ✅ Send user credentials to backend
+      const { data } = await api.post("/auth/login", values, {
+        withCredentials: true, // if your backend uses cookies
       });
-      // const data = await response.json();
-      // console.log(response.data);
-      const data = await response.json();
-
-      console.log("Full response:", response);
-      console.log("Parsed data:", data);
-      if (!response.ok) {
-        // console.log(data.message);
-        ShowToast("error", data.message || "Registration failed");
+      const response = data.data;
+      // console.log(response);
+      // ✅ Check if login successful
+      if (!data?.data?.user || !data?.data?.token) {
+        ShowToast(
+          "warning",
+          data?.message || "Login failed. Please try again."
+        );
         return;
       }
-      dispatch(setUser(data));
-      ShowToast("success", data.message || "Registered successfully");
+
+      // ✅ Save token and user in Redux
+      dispatch(
+        setUser({
+          user: data.data.user,
+          token: data.data.token,
+        })
+      );
+
+      // ✅ Optional: store access token in localStorage if needed
+      localStorage.setItem("token", data.data.token);
+
+      ShowToast("success", data.message || "Login successful");
       navigate(RouteIndex);
     } catch (error) {
-      ShowToast("error", "Something went wrong");
+      console.error("Login error:", error);
+      ShowToast(
+        "error",
+        error?.response?.data?.message || "Something went wrong during login"
+      );
     }
   };
 
   return (
     <div className="flex justify-center items-center h-screen w-screen">
-      <Card className=" px-10 py-5">
+      <Card className="px-10 py-5">
         <Link to={RouteIndex}>
           <div className="flex justify-center items-center">
-            <img className="w-35" src={logo} alt="" />
+            <img className="w-35" src={logo} alt="Logo" />
           </div>
         </Link>
+
         <h1 className="text-center font-bold text-3xl md:text-6xl text-primary">
           LOG IN NOW
         </h1>
+
         <GoogleLogin />
-        <div className="border-1 my-5 flex justify-center items-center w-1/2 mx-auto">
-          <span className="absolute font-bold bg-white">OR</span>
+
+        <div className="border-1 my-5 flex justify-center items-center w-1/2 mx-auto relative">
+          <span className="absolute font-bold bg-white px-2">OR</span>
         </div>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            {/* Email Field */}
+            {/* Email */}
             <FormField
               control={form.control}
               name="email"
@@ -105,12 +120,12 @@ const SignIn = () => {
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage /> {/* ✅ shows validation messages */}
+                  <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Password Field */}
+            {/* Password */}
             <FormField
               control={form.control}
               name="password"
@@ -129,7 +144,6 @@ const SignIn = () => {
               )}
             />
 
-            {/* Submit Button + Link */}
             <div className="text-center">
               <Button className="w-1/2" type="submit">
                 Sign In
