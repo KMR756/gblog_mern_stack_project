@@ -274,3 +274,13 @@ export const Logout = async (req, res, next) => {
     next(handleError(500, error.message));
   }
 };
+
+// GET /api/auth/has-refresh
+export const HasRefreshToken = (req, res) => {
+  const refreshToken = req.cookies.refresh_token;
+  if (refreshToken) {
+    return res.json({ hasRefresh: true });
+  } else {
+    return res.json({ hasRefresh: false });
+  }
+};

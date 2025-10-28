@@ -1,6 +1,7 @@
 import express from "express";
 import {
   GoogleLogin,
+  HasRefreshToken,
   Login,
   Logout,
   RefreshToken,
@@ -13,5 +14,6 @@ AuthRoute.post("/login", Login);
 AuthRoute.post("/google-login", GoogleLogin);
 AuthRoute.post("/logout", Logout);
 AuthRoute.post("/refresh", RefreshToken);
+AuthRoute.get("/has-refresh", HasRefreshToken);
 
 export { AuthRoute };

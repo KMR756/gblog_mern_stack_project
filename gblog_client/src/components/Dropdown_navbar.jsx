@@ -19,6 +19,7 @@ import { ShowToast } from "@/helper/ShowToast";
 import { removeUser } from "@/redux/user/user.slice";
 import { RouteIndex } from "@/helper/RoutesName";
 import Swal from "sweetalert2";
+import { persistor } from "@/store";
 
 const Dropdown_navbar = () => {
   const dispatch = useDispatch();
@@ -56,6 +57,7 @@ const Dropdown_navbar = () => {
 
       dispatch(removeUser());
       navigate(RouteIndex);
+      // persistor.purge();
       Swal.fire({
         title: "Logged Out!",
         text: "You have been logged out successfully.",

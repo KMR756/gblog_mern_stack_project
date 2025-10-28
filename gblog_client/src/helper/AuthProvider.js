@@ -8,8 +8,18 @@ const AuthProvider = ({ children }) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const refreshUser = async () => {
+    const checkAndRefreshUser = async () => {
       try {
+        const hasRefreshRes = await fetch(
+          "http://localhost:8000/api/auth/has-refresh",
+          {
+            credentials: "include",
+          }
+        );
+        const { hasRefresh } = await hasRefreshRes.json();
+
+        if (!hasRefresh) return; // 🛑 stop if no cookie
+
         const res = await fetch(`http://localhost:8000/api/auth/refresh`, {
           method: "POST",
           credentials: "include",
@@ -27,7 +37,7 @@ const AuthProvider = ({ children }) => {
       }
     };
 
-    refreshUser();
+    checkAndRefreshUser();
   }, [dispatch]);
 
   return children;
