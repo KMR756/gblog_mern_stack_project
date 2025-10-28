@@ -1,4 +1,3 @@
-import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 
@@ -12,14 +11,12 @@ import { ToastContainer } from "react-toastify";
 import AuthProvider from "./helper/AuthProvider";
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <AuthProvider>
-          <ToastContainer />
-          <RouterProvider router={routes} />
-        </AuthProvider>
-      </PersistGate>
-    </Provider>
-  </StrictMode>
+  <Provider store={store}>
+    <PersistGate loading={null} persistor={persistor}>
+      <AuthProvider>
+        <ToastContainer />
+        <RouterProvider router={routes} />
+      </AuthProvider>
+    </PersistGate>
+  </Provider>
 );

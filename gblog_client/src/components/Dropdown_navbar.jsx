@@ -74,7 +74,7 @@ const Dropdown_navbar = () => {
     <DropdownMenu>
       <DropdownMenuTrigger className="focus:outline-none">
         <Avatar className="md:h-15 md:w-15">
-          <AvatarImage src={user?.avater || userAvater} />
+          <AvatarImage src={user?.avatar || userAvater} />
           <AvatarFallback>{user?.name ? user.name[0] : "U"}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>

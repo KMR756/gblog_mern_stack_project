@@ -1,7 +1,7 @@
 // src/components/AuthProvider.jsx
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { setUser, removeUser } from "@/redux/user/user.slice";
+import { setUser, removeUser } from "../redux/user/user.slice";
 import { ShowToast } from "./ShowToast";
 
 const AuthProvider = ({ children }) => {
@@ -17,6 +17,7 @@ const AuthProvider = ({ children }) => {
           }
         );
         const { hasRefresh } = await hasRefreshRes.json();
+        console.log(hasRefresh);
 
         if (!hasRefresh) return; // 🛑 stop if no cookie
 
@@ -25,6 +26,7 @@ const AuthProvider = ({ children }) => {
           credentials: "include",
         });
         const data = await res.json();
+        console.log(data.data);
 
         if (data?.data?.user && data?.data?.token) {
           dispatch(setUser({ user: data.data.user, token: data.data.token }));

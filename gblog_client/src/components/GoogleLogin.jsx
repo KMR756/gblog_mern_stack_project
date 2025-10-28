@@ -26,7 +26,7 @@ const GoogleLogin = () => {
       const bodyData = {
         name: user.displayName || "Unnamed User",
         email: user.email,
-        avater: user.photoURL || "",
+        avatar: user.photoURL || "",
       };
 
       // ✅ Send Google data to backend
