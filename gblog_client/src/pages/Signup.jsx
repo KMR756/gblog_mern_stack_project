@@ -20,7 +20,8 @@ import { ShowToast } from "@/helper/ShowToast";
 import GoogleLogin from "@/components/GoogleLogin";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/redux/user/user.slice";
-import api from "../helper/api"; // ✅ use Axios instance
+import api from "@/helper/axios";
+// ✅ use Axios instance
 
 // Validation schema
 const formSchema = z

@@ -8,6 +8,7 @@ import { ShowToast } from "@/helper/ShowToast";
 import { useNavigate } from "react-router";
 import { setUser } from "@/redux/user/user.slice";
 import { useDispatch } from "react-redux";
+import api from "@/helper/axios";
 
 const GoogleLogin = () => {
   const dispatch = useDispatch();
@@ -15,6 +16,7 @@ const GoogleLogin = () => {
 
   const handleGoogleLogin = async () => {
     try {
+      // 1. Initial Google/Firebase authentication (remains the same)
       const googleResponse = await signInWithPopup(auth, provider);
       const user = googleResponse.user;
 
@@ -29,27 +31,25 @@ const GoogleLogin = () => {
         avatar: user.photoURL || "",
       };
 
-      // ✅ Send Google data to backend
-      const response = await fetch(
-        `http://localhost:8000/api/auth/google-login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(bodyData),
-          credentials: "include",
-        }
+      // 2. CONVERSION TO AXIOS
+      // Use the 'api' instance. Base URL and withCredentials: true are automatic.
+      const response = await api.post(
+        `/auth/google-login`, // Use relative path
+        bodyData // Axios sends the bodyData as JSON automatically
       );
 
-      const data = await response.json();
-      if (!response.ok) {
-        ShowToast("error", data?.message || "Login failed");
-        return;
-      }
+      // Axios successfully returns a 2xx status code.
+      // The response data is now accessed via response.data.
+      const data = response.data;
 
       // ✅ Dispatch user and token to Redux
+      // NOTE: If your backend returns the Access Token via an HTTP-only cookie,
+      // you should NOT try to read it from data. If it returns it in the body,
+      // ensure you dispatch it here.
       dispatch(
         setUser({
           user: data.data.user,
+          // Include token if your backend sends it in the response body:
           // token: data.data.token || null,
         })
       );
@@ -58,10 +58,15 @@ const GoogleLogin = () => {
       navigate(RouteIndex);
     } catch (error) {
       console.error("Google login error:", error);
-      ShowToast(
-        "error",
-        error.message || "Something went wrong with Google login"
-      );
+
+      // 3. AXIOS ERROR HANDLING
+      // Check if the error has a response object (i.e., it's an HTTP error)
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Something went wrong with Google login";
+
+      ShowToast("error", message);
     }
   };
 

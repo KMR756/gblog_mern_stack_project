@@ -2,6 +2,7 @@ import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+// Assuming correct paths for UI components and assets
 import logo from "@/assets/images/logo-white.png";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +21,7 @@ import { ShowToast } from "@/helper/ShowToast";
 import GoogleLogin from "@/components/GoogleLogin";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/redux/user/user.slice";
-import api from "@/helper/api";
+import api from "@/helper/axios"; // Your globally configured Axios instance
 
 // ✅ Validation Schema
 const formSchema = z.object({
@@ -48,40 +49,47 @@ const SignIn = () => {
 
   const onSubmit = async (values) => {
     try {
-      // ✅ Send user credentials to backend
-      const { data } = await api.post("/auth/login", values, {
-        withCredentials: true, // if your backend uses cookies
-      });
+      // 🚀 FIXED: Removed redundant `{ withCredentials: true }`
+      // The global 'api' instance already has this setting.
+      const { data } = await api.post("/auth/login", values);
+
+      // The response is already unpacked: data = { message, data: { user, token } }
       const response = data.data;
-      // console.log(response);
-      // ✅ Check if login successful
-      if (!data?.data?.user || !data?.data?.token) {
+
+      // ✅ Check if login successful (Axios only reaches here on 2xx status)
+      if (!response?.user) {
+        // This is a safety check for a successful HTTP status but missing data
         ShowToast(
           "warning",
-          data?.message || "Login failed. Please try again."
+          data?.message || "Login failed. Server response incomplete."
         );
         return;
       }
 
-      // ✅ Save token and user in Redux
+      // ✅ Save user and token in Redux
       dispatch(
         setUser({
-          user: data.data.user,
-          token: data.data.token,
+          user: response.user,
+          // Only include the token if your server sends it in the response body.
+          // If the token is only sent via HTTP-only cookie, remove this line.
+          token: response.token,
         })
       );
 
-      // ✅ Optional: store access token in localStorage if needed
-      localStorage.setItem("token", data.data.token);
+      // ⚠️ IMPORTANT: Remove this line if you are relying on Redux Persist
+      // and HTTP-only cookies for security, as storing tokens in localStorage
+      // is generally discouraged for SPA security.
+      // localStorage.setItem("token", response.token);
 
       ShowToast("success", data.message || "Login successful");
       navigate(RouteIndex);
     } catch (error) {
       console.error("Login error:", error);
-      ShowToast(
-        "error",
-        error?.response?.data?.message || "Something went wrong during login"
-      );
+      // Access the server-provided message via the standard Axios error structure
+      const errorMessage =
+        error.response?.data?.message || "Something went wrong during login";
+
+      ShowToast("error", errorMessage);
     }
   };
 
@@ -145,8 +153,13 @@ const SignIn = () => {
             />
 
             <div className="text-center">
-              <Button className="w-1/2" type="submit">
-                Sign In
+              <Button
+                className="w-1/2"
+                type="submit"
+                // Disable button during submission
+                disabled={form.formState.isSubmitting}
+              >
+                {form.formState.isSubmitting ? "Logging In..." : "Sign In"}
               </Button>
 
               <div className="text-xs flex justify-center items-center py-3">

@@ -12,21 +12,20 @@ const AuthProvider = ({ children }) => {
       try {
         const hasRefreshRes = await fetch(
           "http://localhost:8000/api/auth/has-refresh",
-          {
-            credentials: "include",
-          }
+          { credentials: "include" }
         );
         const { hasRefresh } = await hasRefreshRes.json();
-        console.log(hasRefresh);
 
-        if (!hasRefresh) return; // 🛑 stop if no cookie
+        if (!hasRefresh) {
+          dispatch(removeUser());
+          return;
+        }
 
         const res = await fetch(`http://localhost:8000/api/auth/refresh`, {
           method: "POST",
           credentials: "include",
         });
         const data = await res.json();
-        console.log(data.data);
 
         if (data?.data?.user && data?.data?.token) {
           dispatch(setUser({ user: data.data.user }));
@@ -40,6 +39,10 @@ const AuthProvider = ({ children }) => {
     };
 
     checkAndRefreshUser();
+
+    // 🕒 Poll every 10 seconds
+    const interval = setInterval(checkAndRefreshUser, 10000);
+    return () => clearInterval(interval);
   }, [dispatch]);
 
   return children;

@@ -1,6 +1,7 @@
-// src/utils/api.js
+// src/utils/api.js (Revised & Corrected)
 import axios from "axios";
-import { store } from "../store";
+// Import Redux utilities
+import { getStore, getDispatch } from "../store"; // Adjusted path
 import { setUser, removeUser } from "../redux/user/user.slice";
 import { ShowToast } from "./ShowToast";
 
@@ -12,7 +13,8 @@ const api = axios.create({
 // Attach token to every request
 api.interceptors.request.use(
   (config) => {
-    const token = store.getState().user.token;
+    // FIX 1: Must CALL getStore() and getState()
+    const token = getStore()?.getState()?.user?.token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -38,20 +40,26 @@ api.interceptors.response.use(
 
         const { token, user } = res.data?.data || {};
 
+        // FIX 2: Get dispatch once here
+        const dispatch = getDispatch();
+
         if (!token) {
-          store.dispatch(removeUser());
+          // FIX 3: Must CALL dispatch
+          dispatch(removeUser());
           ShowToast("error", "Session expired. Please login again.");
           return Promise.reject(error);
         }
 
         // Update Redux
-        store.dispatch(setUser({ user, token }));
+        // FIX 4: Must CALL dispatch
+        dispatch(setUser({ user, token }));
 
-        // Retry original request
-        originalRequest.headers.Authorization = `Bearer ${token}`;
-        return axios(originalRequest);
+        // FIX 5: Use the 'api' instance for retries for consistency
+        // The request interceptor (above) will handle adding the new token.
+        return api(originalRequest);
       } catch (err) {
-        store.dispatch(removeUser());
+        // FIX 6: Must CALL dispatch
+        getDispatch()(removeUser()); // or const dispatch = getDispatch(); dispatch(removeUser());
         ShowToast("error", "Session expired. Please login again.");
         return Promise.reject(err);
       }

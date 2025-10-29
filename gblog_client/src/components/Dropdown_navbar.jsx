@@ -19,7 +19,8 @@ import { ShowToast } from "@/helper/ShowToast";
 import { removeUser } from "@/redux/user/user.slice";
 import { RouteIndex } from "@/helper/RoutesName";
 import Swal from "sweetalert2";
-import { persistor } from "@/store";
+// import { persistor } from "@/store";
+import api from "@/helper/axios";
 
 const Dropdown_navbar = () => {
   const dispatch = useDispatch();
@@ -31,6 +32,7 @@ const Dropdown_navbar = () => {
 
   // ✅ Handle logout
   const handleLogout = async () => {
+    // 1. Confirmation using SweetAlert2 remains the same
     const result = await Swal.fire({
       title: "Are you sure?",
       text: "You will be logged out of your account.",
@@ -44,29 +46,41 @@ const Dropdown_navbar = () => {
     if (!result.isConfirmed) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/auth/logout`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        credentials: "include",
-      });
+      // 2. CONVERSION TO AXIOS
+      // We use the 'api' instance.
+      // - The base URL (http://localhost:8000/api) is included automatically.
+      // - credentials: "include" (withCredentials: true) is included automatically.
+      const response = await api.post(`/auth/logout`);
 
-      const data = await response.json();
-      if (!response.ok) {
-        return ShowToast("error", data.message || "Logout failed");
-      }
+      // Axios automatically throws an error for 4xx/5xx status codes,
+      // so we only proceed if the request was successful (2xx status).
 
+      // Dispatch logout actions
       dispatch(removeUser());
       navigate(RouteIndex);
+
+      // Optional: If you use Redux Persist and need to clear it manually
       // persistor.purge();
+
+      // Show success alert
       Swal.fire({
         title: "Logged Out!",
-        text: "You have been logged out successfully.",
+        text: response.data.message || "You have been logged out successfully.",
         icon: "success",
         timer: 2000,
         showConfirmButton: false,
       });
     } catch (error) {
-      ShowToast("error", error.message || "Something went wrong");
+      // 3. AXIOS ERROR HANDLING
+      // The error object now contains the response data under error.response.data
+      const message =
+        error.response?.data?.message || "Something went wrong. Logout failed.";
+
+      ShowToast("error", message);
+
+      // NOTE: If the logout call fails, it's safer to *force* a client-side logout
+      // to prevent the UI from showing a logged-in state when the server session is dead.
+      dispatch(removeUser());
     }
   };
 
