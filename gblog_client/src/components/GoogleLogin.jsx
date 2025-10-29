@@ -50,7 +50,7 @@ const GoogleLogin = () => {
       dispatch(
         setUser({
           user: data.data.user,
-          token: data.data.token || null,
+          // token: data.data.token || null,
         })
       );
 

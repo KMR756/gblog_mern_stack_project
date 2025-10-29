@@ -7,7 +7,7 @@ import { persistReducer, persistStore } from "redux-persist";
 
 // Configuration for redux-persist
 const persistConfig = {
-  key: "root",
+  key: "user",
   storage,
   // Since 'user' is the only slice, you don't strictly need 'whitelist',
   // but it's good practice.

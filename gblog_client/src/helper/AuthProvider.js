@@ -29,7 +29,7 @@ const AuthProvider = ({ children }) => {
         console.log(data.data);
 
         if (data?.data?.user && data?.data?.token) {
-          dispatch(setUser({ user: data.data.user, token: data.data.token }));
+          dispatch(setUser({ user: data.data.user }));
         } else {
           dispatch(removeUser());
         }
