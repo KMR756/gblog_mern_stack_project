@@ -97,20 +97,34 @@ export const HasRefreshToken = (req, res) => {
     return res.json({ hasRefresh: false });
   }
 };
+
+const clearAuthCookies = (res) => {
+  res.clearCookie("access_token", COOKIE_OPTIONS);
+  res.clearCookie("refresh_token", COOKIE_OPTIONS);
+};
+
 // REFRESH TOKEN
 export const RefreshToken = AsyncHandler(async (req, res) => {
   const { refresh_token } = req.cookies;
-  if (!refresh_token) throw new ApiError(401, "No refresh token provided.");
+  if (!refresh_token) {
+    clearAuthCookies(res); // clear cookies if missing
+    throw new ApiError(401, "No refresh token provided.");
+  }
 
   const user = await User.findOne({ refreshToken: refresh_token });
-  if (!user) throw new ApiError(403, "Invalid refresh token.");
+  if (!user) {
+    clearAuthCookies(res); // clear cookies if invalid
+    throw new ApiError(403, "Invalid refresh token.");
+  }
 
   try {
     jwt.verify(refresh_token, process.env.JWT_REFRESH_SECRET);
   } catch (err) {
+    clearAuthCookies(res); // clear cookies if token expired
     throw new ApiError(403, "Invalid or expired refresh token.");
   }
 
+  // Generate new tokens
   const { accessToken, refreshToken: newRefreshToken } = generateTokens(user);
   user.refreshToken = newRefreshToken;
   await user.save();
@@ -137,8 +151,7 @@ export const Logout = AsyncHandler(async (req, res) => {
       { $unset: { refreshToken: "" } }
     );
 
-  res.clearCookie("access_token", COOKIE_OPTIONS);
-  res.clearCookie("refresh_token", COOKIE_OPTIONS);
+  clearAuthCookies(res);
 
   res.status(200).json(new ApiResponse(200, null, "Logout successful."));
 });

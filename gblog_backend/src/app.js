@@ -5,7 +5,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import { AuthRoute } from "./routes/Auth.route.js";
-import { errorHandler } from "./middleware/errorHandler.js";
+import { globalErrorHandler } from "./middleware/globalErrorHandler.js";
 
 const app = express();
 
@@ -15,7 +15,7 @@ app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 
 app.use("/api/auth", AuthRoute);
 
-app.use(errorHandler);
+app.use(globalErrorHandler);
 
 export { app };
 
