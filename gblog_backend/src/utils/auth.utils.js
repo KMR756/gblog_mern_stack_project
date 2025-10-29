@@ -9,7 +9,7 @@ export const COOKIE_OPTIONS = {
 export const setAuthCookies = (res, accessToken, refreshToken) => {
   res.cookie("access_token", accessToken, {
     ...COOKIE_OPTIONS,
-    maxAge: 15 * 60 * 1000,
+    maxAge: 17 * 60 * 1000,
   });
   res.cookie("refresh_token", refreshToken, {
     ...COOKIE_OPTIONS,
@@ -25,3 +25,8 @@ export const sanitizeUser = (user) => ({
   avatar: user.avatar || "",
   createdAt: user.createdAt,
 });
+
+export const clearAuthCookies = (res) => {
+  res.clearCookie("access_token", COOKIE_OPTIONS);
+  res.clearCookie("refresh_token", COOKIE_OPTIONS);
+};

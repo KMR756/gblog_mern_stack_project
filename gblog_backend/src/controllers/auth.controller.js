@@ -5,7 +5,7 @@ import { AsyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import {
-  COOKIE_OPTIONS,
+  clearAuthCookies,
   setAuthCookies,
   sanitizeUser,
 } from "../utils/auth.utils.js";
@@ -98,11 +98,6 @@ export const HasRefreshToken = (req, res) => {
   }
 };
 
-const clearAuthCookies = (res) => {
-  res.clearCookie("access_token", COOKIE_OPTIONS);
-  res.clearCookie("refresh_token", COOKIE_OPTIONS);
-};
-
 // REFRESH TOKEN
 export const RefreshToken = AsyncHandler(async (req, res) => {
   const { refresh_token } = req.cookies;
@@ -136,7 +131,7 @@ export const RefreshToken = AsyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        { user: sanitizeUser(user), token: accessToken },
+        { user: sanitizeUser(user) },
         "Token refreshed successfully."
       )
     );
