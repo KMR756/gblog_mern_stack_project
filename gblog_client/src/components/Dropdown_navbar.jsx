@@ -110,7 +110,7 @@ const Dropdown_navbar = () => {
 
         <DropdownMenuSeparator />
 
-        <Link to={"/profile"}>
+        <Link to={"/user-profile"}>
           <DropdownMenuItem>
             <IoPeopleSharp />
             Profile

@@ -1,16 +1,9 @@
 import express from "express";
-
-import {
-  getUserProfile,
-  updateUserProfile,
-} from "../controllers/user.controler.js";
+import { getUser } from "../controllers/user.controller.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 
 const UserRoute = express.Router();
 
-UserRoute.get("/user/me", verifyToken, getUserProfile);
-UserRoute.put("/user/me", verifyToken, updateUserProfile);
+UserRoute.get("/get-user/:userID", verifyToken, getUser);
 
 export { UserRoute };
-
-// api/user/me

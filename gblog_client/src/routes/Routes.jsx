@@ -10,6 +10,7 @@ import Home from "@/pages/Home";
 
 import SignIn from "@/pages/SignIn";
 import Signup from "@/pages/Signup";
+import UserProfile from "@/pages/UserProfile";
 import { createBrowserRouter } from "react-router";
 
 export const routes = createBrowserRouter([
@@ -20,6 +21,10 @@ export const routes = createBrowserRouter([
       {
         index: true,
         Component: Home,
+      },
+      {
+        path: "user-profile",
+        Component: UserProfile,
       },
     ],
   },
