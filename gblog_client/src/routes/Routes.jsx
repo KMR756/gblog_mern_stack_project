@@ -6,6 +6,7 @@ import {
 } from "@/helper/RoutesName";
 import AuthLayout from "@/layouts/AuthLayout";
 import Root from "@/layouts/Root";
+import EditProfile from "@/pages/EditProfile";
 import Home from "@/pages/Home";
 
 import SignIn from "@/pages/SignIn";
@@ -26,6 +27,10 @@ export const routes = createBrowserRouter([
         path: "user-profile",
         Component: UserProfile,
       },
+      {
+        path:"edit-profile",
+        Component:EditProfile
+      }
     ],
   },
   {

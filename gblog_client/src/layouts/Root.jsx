@@ -11,7 +11,7 @@ const Root = () => {
       <Navbar />
       <AppSideBar />
       <main className=" w-full">
-        <div className="w-full h-[calc(100vh-67px)] pt-25">
+        <div className="w-full min-h-[calc(100vh-67px)] pt-25">
           <Outlet />
         </div>
         <Footer />

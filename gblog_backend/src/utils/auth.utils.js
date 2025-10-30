@@ -9,11 +9,11 @@ export const COOKIE_OPTIONS = {
 export const setAuthCookies = (res, accessToken, refreshToken) => {
   res.cookie("access_token", accessToken, {
     ...COOKIE_OPTIONS,
-    maxAge: 30 * 1000,
+    maxAge: 15 *60 * 1000,
   });
   res.cookie("refresh_token", refreshToken, {
     ...COOKIE_OPTIONS,
-    maxAge: 2 * 60 * 1000,
+    maxAge: 7 *24 * 60 * 60 * 1000,
   });
 };
 
